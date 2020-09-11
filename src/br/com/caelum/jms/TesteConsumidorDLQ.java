@@ -11,36 +11,28 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-public class TesteConsumidorTopicoComercial {
+public class TesteConsumidorDLQ {
 
 	public static void main(String[] args) throws Exception {
 			
 		InitialContext context = new InitialContext();
 		ConnectionFactory factory = (ConnectionFactory) context.lookup("ConnectionFactory");
 		Connection connection = factory.createConnection();
-		connection.setClientID("comercial");
 		connection.start();
 		
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE); 
-
-		Topic topico = (Topic) context.lookup("loja");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
-		MessageConsumer consumer = session.createDurableSubscriber(topico, "assinatura"); 
-		//É um consumidor de um tópico que se identificou. Ou seja, o tópico sabe da existência desse consumidor.
 		
+		Destination fila = (Destination) context.lookup("DLQ");
+		MessageConsumer consumer = session.createConsumer(fila);
 		consumer.setMessageListener(new MessageListener() { 
 			
 			@Override
 			public void onMessage(Message message) {
-				TextMessage textMessage = (TextMessage) message;
-				try {
-					System.out.println(textMessage.getText());
-				} catch (JMSException e) {
-					e.printStackTrace();
-				}
+				System.out.println(message);
+		
 			}
 		});
 		

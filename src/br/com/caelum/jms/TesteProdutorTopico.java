@@ -1,5 +1,6 @@
 package br.com.caelum.jms;
 
+import java.io.StringWriter;
 import java.util.Scanner;
 
 import javax.jms.Connection;
@@ -14,6 +15,10 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.xml.bind.JAXB;
+
+import br.com.caelum.modelo.Pedido;
+import br.com.caelum.modelo.PedidoFactory;
 
 public class TesteProdutorTopico {
 
@@ -25,20 +30,25 @@ public class TesteProdutorTopico {
 		connection.start();
 		
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE); 
-		//A Session abstrai o trabalho transacional e de confirmação do recebimento da mensagem.
-		//false = não quero uma transação
-		//AUTO_ACKNOWLEDGE = confirma automaticamente o recebimento da mensagem
 		
 		Destination topico = (Destination) context.lookup("loja");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
 		
 		MessageProducer producer = session.createProducer(topico);
 		
-		
-		for (int i = 0; i < 1; i++) {
-			Message message = session.createTextMessage("<pedido><id>"+i+"</id></pedido>");
+			Pedido pedido = new PedidoFactory().geraPedidoComValores();
+			
+//			StringWriter writer = new StringWriter();
+//			JAXB.marshal(pedido, writer);
+//		    String xml = writer.toString();
+			
+//		    Message message = session.createTextMessage(xml);
+			
+			Message message = session.createObjectMessage(pedido);
+//			message.setBooleanProperty("ebook", false);
+			
 			producer.send(message);
-			System.out.println("Mensagem ["+(i+1)+"] enviada: "+message);			
-		}
+			System.out.println("Mensagem enviada: "+message);			
+		
 		
 		session.close();
 		connection.close();

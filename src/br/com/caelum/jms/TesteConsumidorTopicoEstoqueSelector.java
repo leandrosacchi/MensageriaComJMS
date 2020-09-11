@@ -9,16 +9,13 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import br.com.caelum.modelo.Pedido;
-
-public class TesteConsumidorTopicoEstoque {
+public class TesteConsumidorTopicoEstoqueSelector {
 
 	public static void main(String[] args) throws Exception {
 			
@@ -29,25 +26,19 @@ public class TesteConsumidorTopicoEstoque {
 		connection.start();
 		
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE); 
-		//A Session abstrai o trabalho transacional e de confirmação do recebimento da mensagem.
-		//false = não quero uma transação
-		//AUTO_ACKNOWLEDGE = confirma automaticamente o recebimento da mensagem
+		Topic topico = (Topic) context.lookup("loja");
 		
-		Topic topico = (Topic) context.lookup("loja");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
-		MessageConsumer consumer = session.createDurableSubscriber(topico, "assinatura"); //consumer fica escutando as mensagens de uma fila concreta
-					
-//		Message message = consumer.receive(); //recebedor da mensagem devolve uma mensagem;
+		String messageSelector = "ebook is null OR ebook=false";
+		MessageConsumer consumer = session.createDurableSubscriber(topico, "assinatura-selector", messageSelector, false);
+		//false = não reaproveita essa conexão para enviar mensagens
 		
 		consumer.setMessageListener(new MessageListener() { 
-			//MessageListener permite que o consumer fique escutando e não termine quando recebe uma mensagem
 			
 			@Override
 			public void onMessage(Message message) {
-//				TextMessage textMessage = (TextMessage) message;
-				ObjectMessage textMessage = (ObjectMessage) message;
+				TextMessage textMessage = (TextMessage) message;
 				try {
-					Pedido pedido = (Pedido) textMessage.getObject();
-					System.out.println(pedido.getCodigo());
+					System.out.println(textMessage.getText());
 				} catch (JMSException e) {
 					e.printStackTrace();
 				}
