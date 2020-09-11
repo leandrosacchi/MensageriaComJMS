@@ -27,6 +27,8 @@ public class TesteConsumidorFila {
 		//A Session abstrai o trabalho transacional e de confirmação do recebimento da mensagem.
 		//false = não quero uma transação
 		//AUTO_ACKNOWLEDGE = confirma automaticamente o recebimento da mensagem
+		//CLIENT_AUTO_ACKNOWLEDGE = precisa utilizar o metodo acknowledge() para confirmar o recebimento; 
+		//SESSION_TRANSACTED = permite que se utilize um rollback no recebimento da mensagem;
 		
 		Destination fila = (Destination) context.lookup("financeiro");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
 		MessageConsumer consumer = session.createConsumer(fila); //consumer fica escutando as mensagens de uma fila concreta
@@ -40,7 +42,10 @@ public class TesteConsumidorFila {
 			public void onMessage(Message message) {
 				TextMessage textMessage = (TextMessage) message;
 				try {
+					//message.acknowledge();
 					System.out.println(textMessage.getText());
+					//session.commit(); //confirma o recebimento da mensagem
+					//session.rollback(); //anula o recebimento da mensagem
 				} catch (JMSException e) {
 					e.printStackTrace();
 				}
