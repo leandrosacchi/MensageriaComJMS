@@ -9,12 +9,13 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-public class TesteConsumidor {
+public class TesteProdutorTopico {
 
 	public static void main(String[] args) throws Exception {
 			
@@ -28,26 +29,16 @@ public class TesteConsumidor {
 		//false = não quero uma transação
 		//AUTO_ACKNOWLEDGE = confirma automaticamente o recebimento da mensagem
 		
-		Destination fila = (Destination) context.lookup("financeiro");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
-		MessageConsumer consumer = session.createConsumer(fila); //consumer fica escutando as mensagens de uma fila concreta
-					
-//		Message message = consumer.receive(); //recebedor da mensagem devolve uma mensagem;
+		Destination topico = (Destination) context.lookup("loja");//local concreto onde a mensagem será salva temporariamente ,dentro do MOM
 		
-		consumer.setMessageListener(new MessageListener() { 
-			//MessageListener permite que o consumer fique escutando e não termine quando recebe uma mensagem
-			
-			@Override
-			public void onMessage(Message message) {
-				TextMessage textMessage = (TextMessage) message;
-				try {
-					System.out.println(textMessage.getText());
-				} catch (JMSException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		MessageProducer producer = session.createProducer(topico);
 		
-		new Scanner(System.in).nextLine();
+		
+		for (int i = 0; i < 1; i++) {
+			Message message = session.createTextMessage("<pedido><id>"+i+"</id></pedido>");
+			producer.send(message);
+			System.out.println("Mensagem ["+(i+1)+"] enviada: "+message);			
+		}
 		
 		session.close();
 		connection.close();
